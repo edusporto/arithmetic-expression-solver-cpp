@@ -76,20 +76,20 @@ Expression::Expression(const std::string& expression)
 
 Expression::~Expression() {}
 
-double Expression::solve()
+void postfix_notation(std::queue<std::shared_ptr<ExpressionPart>>& exp_queue,
+                      const std::string& expression)
 {
-    std::stack<std::shared_ptr<ExpressionOperator>> exp_stack;
-    std::queue<std::shared_ptr<ExpressionPart>> exp_queue;
+    std::stack<std::shared_ptr<ExpressionOperator>> operator_stack;
     std::vector<std::string> tokens;
 
-    stringTokenize(this->expression, tokens, ExpressionTable::symbols);
+    stringTokenize(expression, tokens, ExpressionTable::symbols);
 
     for (std::string& curr_token : tokens)
     {
         // If the current token is "("
         if (curr_token == "(")
         {
-            exp_stack.push(std::make_shared<ExpressionOperator>('('));
+            operator_stack.push(std::make_shared<ExpressionOperator>('('));
             continue;
         }
 
@@ -104,36 +104,36 @@ double Expression::solve()
         // If the current token is ")"
         if (curr_token == ")")
         {
-            while (!exp_stack.empty())
+            while (!operator_stack.empty())
             {
-                auto topOfStack = exp_stack.top();
+                auto topOfStack = std::move(operator_stack.top());
 
                 if (topOfStack->getOperator() == '(')
                     break;
 
-                exp_queue.push(std::move(exp_stack.top()));
-                exp_stack.pop();
+                exp_queue.push(std::move(topOfStack));
+                operator_stack.pop();
             }
 
-            exp_stack.pop();
+            operator_stack.pop();
 
             continue;
         }
 
         // The current token is an arithmetic operator
-        while (!exp_stack.empty() &&
-               ExpressionTable::shouldUnstack(exp_stack.top()->getOperator(),
+        while (!operator_stack.empty() &&
+               ExpressionTable::shouldUnstack(operator_stack.top()->getOperator(),
                                               curr_token[0])) {
-            exp_queue.push(std::move(exp_stack.top()));
-            exp_stack.pop();
+            exp_queue.push(std::move(operator_stack.top()));
+            operator_stack.pop();
         }
 
-        exp_stack.push(std::make_shared<ExpressionOperator>(curr_token[0]));
+        operator_stack.push(std::make_shared<ExpressionOperator>(curr_token[0]));
     }
 
-    while (!exp_stack.empty()) {
-        exp_queue.push(std::move(exp_stack.top()));
-        exp_stack.pop();
+    while (!operator_stack.empty()) {
+        exp_queue.push(std::move(operator_stack.top()));
+        operator_stack.pop();
     }
 
     while (!exp_queue.empty())
@@ -148,10 +148,28 @@ double Expression::solve()
 
         exp_queue.pop();
     }
+}
 
-    // FIRST STEP COMPLETE
+double expression_calculator(std::queue<std::shared_ptr<ExpressionPart>>& exp_queue)
+{
+    double v1, v2;
+    char op;
+
+    std::stack<std::shared_ptr<ExpressionNumber>> number_stack;
+}
+
+
+double Expression::solve()
+{
+    std::queue<std::shared_ptr<ExpressionPart>> exp_queue;
+    postfix_notation(exp_queue, this->expression);
+
+
+
 
     // TODO: Implement second step
+
+
 
     return 0;
 }
