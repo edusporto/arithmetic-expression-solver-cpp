@@ -9,7 +9,7 @@ protected:
     std::string expression;
 
 public:
-    Expression(std::string);
+    Expression(const std::string&);
 
     virtual ~Expression();
 
