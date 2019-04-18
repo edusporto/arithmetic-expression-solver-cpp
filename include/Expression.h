@@ -9,11 +9,13 @@ protected:
     std::string expression;
 
 public:
-    Expression(const std::string&);
+    explicit Expression(std::string);
 
     virtual ~Expression();
 
     double solve();
+
+    double static calculateValues(double, double, char);
 
     std::string getExpression() { return this->expression; };
 };

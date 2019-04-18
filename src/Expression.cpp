@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 #include "ExpressionTable.h"
 #include "ExpressionPart.h"
 #include "ExpressionNumber.h"
@@ -65,10 +66,9 @@ bool is_numeric (const std::string& str, double& value)
 
 
 
-Expression::Expression(const std::string& expression)
+Expression::Expression(std::string expression)
+    : expression(std::move(expression))
 {
-    this->expression = expression;
-
     if (this->expression.find(' ') != std::string::npos) {
         remove_whitespaces(this->expression);
     }
@@ -76,10 +76,10 @@ Expression::Expression(const std::string& expression)
 
 Expression::~Expression() {}
 
-void postfix_notation(std::queue<std::shared_ptr<ExpressionPart>>& exp_queue,
+void postfix_notation(std::queue<std::unique_ptr<ExpressionPart>>& exp_queue,
                       const std::string& expression)
 {
-    std::stack<std::shared_ptr<ExpressionOperator>> operator_stack;
+    std::stack<std::unique_ptr<ExpressionOperator>> operator_stack;
     std::vector<std::string> tokens;
 
     stringTokenize(expression, tokens, ExpressionTable::symbols);
@@ -89,7 +89,7 @@ void postfix_notation(std::queue<std::shared_ptr<ExpressionPart>>& exp_queue,
         // If the current token is "("
         if (curr_token == "(")
         {
-            operator_stack.push(std::make_shared<ExpressionOperator>('('));
+            operator_stack.push(std::make_unique<ExpressionOperator>('('));
             continue;
         }
 
@@ -97,7 +97,7 @@ void postfix_notation(std::queue<std::shared_ptr<ExpressionPart>>& exp_queue,
         double number;
         if (is_numeric(curr_token, number))
         {
-            exp_queue.push(std::make_shared<ExpressionNumber>(number));
+            exp_queue.push(std::make_unique<ExpressionNumber>(number));
             continue;
         }
 
@@ -128,48 +128,65 @@ void postfix_notation(std::queue<std::shared_ptr<ExpressionPart>>& exp_queue,
             operator_stack.pop();
         }
 
-        operator_stack.push(std::make_shared<ExpressionOperator>(curr_token[0]));
+        operator_stack.push(std::make_unique<ExpressionOperator>(curr_token[0]));
     }
 
     while (!operator_stack.empty()) {
         exp_queue.push(std::move(operator_stack.top()));
         operator_stack.pop();
     }
-
-    while (!exp_queue.empty())
-    {
-        auto curr = exp_queue.front();
-
-        if (curr->getType() == ExpressionPart::Type::Operator) {
-            std::cout << ((ExpressionOperator*)curr.get())->getOperator() << std::endl;
-        } else {
-            std::cout << ((ExpressionNumber*)curr.get())->getNumber() << std::endl;
-        }
-
-        exp_queue.pop();
-    }
 }
 
-double expression_calculator(std::queue<std::shared_ptr<ExpressionPart>>& exp_queue)
+double expression_calculator(std::queue<std::unique_ptr<ExpressionPart>>& exp_queue)
 {
     double v1, v2;
     char op;
+    std::stack<double> number_stack;
 
-    std::stack<std::shared_ptr<ExpressionNumber>> number_stack;
+    while (!exp_queue.empty())
+    {
+        auto curr = std::move(exp_queue.front());
+        exp_queue.pop();
+
+        if (curr->getType() == ExpressionPart::Type::Number) {
+            double currentNumber = ((ExpressionNumber*)curr.get())->getNumber();
+            number_stack.push(currentNumber);
+        } else {
+            // curr can only be an operator
+            op = ((ExpressionOperator*)curr.get())->getOperator();
+            v2 = number_stack.top();
+            number_stack.pop();
+            v1 = number_stack.top();
+            number_stack.pop();
+            v1 = Expression::calculateValues(v1, v2, op);
+
+            // v1 will contain the result of the current operation
+            number_stack.push(v1);
+        }
+    }
+
+    //   when the program reaches this line, there is only one element in the
+    // number stack: the result of the expression
+
+    return number_stack.top();
 }
 
+double Expression::calculateValues(double v1, double v2, char op)
+{
+    switch (op) {
+        case '+': return v1 + v2;
+        case '-': return v1 - v2;
+        case '*': return v1 * v2;
+        case '/': return v1 / v2;
+        case '^': return std::pow(v1, v2);
+        default : return 0;
+    }
+}
 
 double Expression::solve()
 {
-    std::queue<std::shared_ptr<ExpressionPart>> exp_queue;
+    std::queue<std::unique_ptr<ExpressionPart>> exp_queue;
     postfix_notation(exp_queue, this->expression);
 
-
-
-
-    // TODO: Implement second step
-
-
-
-    return 0;
+    return expression_calculator(exp_queue);
 }

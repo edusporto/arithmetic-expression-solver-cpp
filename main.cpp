@@ -19,18 +19,10 @@ int main()
     std::cout << "Input an arithmetic expression: " << std::endl;
     std::getline(std::cin, str);
 
-    remove_whitespaces(str);
-
-    // Next step is to tokenize the expression inputted by the user
-    std::vector<std::string> tokens;
-    /*stringTokenize(str, tokens, ExpressionTable::symbols);
-
-    for (std::string& s : tokens) {
-        std::cout << s << std::endl;
-    }*/
+    //remove_whitespaces(str);
 
     Expression exp(str);
-    exp.solve();
+    std::cout << "Result: " << exp.solve() << std::endl;
 
     std::cin.ignore();
 
