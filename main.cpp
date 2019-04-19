@@ -21,8 +21,12 @@ int main()
 
     //remove_whitespaces(str);
 
-    Expression exp(str);
-    std::cout << "Result: " << exp.solve() << std::endl;
+    try {
+        Expression exp(str);
+        std::cout << "Result: " << exp.solve() << std::endl;
+    } catch (std::invalid_argument& e) {
+        std::cerr << e.what() << std::endl;
+    }
 
     std::cin.ignore();
 

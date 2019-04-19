@@ -7,6 +7,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <exception>
 #include "ExpressionTable.h"
 #include "ExpressionPart.h"
 #include "ExpressionNumber.h"
@@ -62,13 +63,14 @@ bool is_numeric (const std::string& str, double& value)
     return !i.fail() && i.eof();
 }
 
-
-
-
-
 Expression::Expression(std::string expression)
     : expression(std::move(expression))
 {
+    if (this->expression.find_first_not_of("0123456789(^*/+-) ") != std::string::npos) {
+        // found an invalid character
+        throw std::invalid_argument("Invalid character in expression");
+    }
+
     if (this->expression.find(' ') != std::string::npos) {
         remove_whitespaces(this->expression);
     }
@@ -87,7 +89,7 @@ void postfix_notation(std::queue<std::unique_ptr<ExpressionPart>>& exp_queue,
     for (std::string& curr_token : tokens)
     {
         // If the current token is "("
-        if (curr_token == "(")
+        if (curr_token[0] == '(')
         {
             operator_stack.push(std::make_unique<ExpressionOperator>('('));
             continue;
@@ -102,7 +104,7 @@ void postfix_notation(std::queue<std::unique_ptr<ExpressionPart>>& exp_queue,
         }
 
         // If the current token is ")"
-        if (curr_token == ")")
+        if (curr_token[0] == ')')
         {
             while (!operator_stack.empty())
             {
