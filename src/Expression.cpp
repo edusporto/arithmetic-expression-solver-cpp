@@ -117,7 +117,8 @@ void postfix_notation(std::queue<std::unique_ptr<ExpressionPart>>& exp_queue,
                 operator_stack.pop();
             }
 
-            operator_stack.pop();
+            if (!operator_stack.empty())
+                operator_stack.pop();
 
             continue;
         }
