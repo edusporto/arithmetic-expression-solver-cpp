@@ -56,7 +56,7 @@ bool is_numeric (const std::string& str, double& value)
     auto i = std::istringstream(str);
 
     i >> result;
-    i >> std::ws;
+    //i >> std::ws;
 
     value = result;
 
