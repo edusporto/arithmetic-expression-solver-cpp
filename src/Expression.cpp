@@ -66,7 +66,7 @@ bool is_numeric (const std::string& str, double& value)
 Expression::Expression(std::string expression)
     : expression(std::move(expression))
 {
-    if (this->expression.find_first_not_of("0123456789(^*/+-) ") != std::string::npos) {
+    if (this->expression.find_first_not_of("0123456789(^*/+-) .") != std::string::npos) {
         // found an invalid character
         throw std::invalid_argument("Invalid character in expression");
     }
