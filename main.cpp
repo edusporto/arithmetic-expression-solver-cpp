@@ -12,19 +12,24 @@ void inline remove_whitespaces(std::string& str)
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
     std::string str; // contains the expression inputted by the user
 
-    std::cout << "Input an arithmetic expression: " << std::endl;
-    std::getline(std::cin, str);
+    if (argc <= 1) {
+	    std::cout << "Input an arithmetic expression: " << std::endl;
+	    std::getline(std::cin, str);
+	} else {
+		str = argv[1];
+	}
 
-    //remove_whitespaces(str);
-
-    try {
+    try
+    {
         Expression exp(str);
         std::cout << "Result: " << exp.solve() << std::endl;
-    } catch (std::invalid_argument& e) {
+    }
+    catch (std::invalid_argument& e)
+    {
         std::cerr << e.what() << std::endl;
     }
 
